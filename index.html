@@ -89,7 +89,7 @@ main{max-width:520px;margin:0 auto;padding-block:20px 32px;display:flex;flex-dir
   </div>
   <div class="bar" id="barWrap" hidden><i id="bar"></i></div>
   <div id="view"></div>
-  <div id="spWrap"><div id="sp"></div></div>
+  <div id="spWrap"></div>
   <p class="foot" id="foot">30 låtar · musik via Spotify</p>
 </main>
 
@@ -127,50 +127,41 @@ const LIB = [
  {s:"The Impossible Dream",a:"Andy Williams",b:"Honda",y:2005,u:"track:5Z0fxoqx4Zw9RjDhRHYzDC",f:"En man reser genom Hondas historia med motorcykel, bil, båt och luftballong."}
 ];
 
-/* ---------- Spotify ---------- */
-let sp=null, playing=false, wantUri=null, loadedUri=null, pendingPlay=false, startTimer=null, playTimer=null;
-window.onSpotifyIframeApiReady = API => {
-  API.createController(document.getElementById("sp"), {width:"100%", height:80, uri:wantUri||"spotify:"+LIB[0].u}, c => {
-    sp=c; loadedUri=wantUri||"spotify:"+LIB[0].u;
-    /* "ready" kommer när en låt har laddats färdigt, även efter loadUri */
-    c.addListener("ready",()=>{ if(pendingPlay){pendingPlay=false;clearTimeout(playTimer);sp.play();} });
+/* ---------- Spotify ----------
+   En ny spelare skapas för varje låt. Att byta låt i samma spelare
+   (loadUri) fungerade inte pålitligt i mobilwebbläsare. */
+let API=null, sp=null, gen=0, playing=false, wantUri=null, pendingPlay=false, startTimer=null, playTimer=null;
+window.onSpotifyIframeApiReady = api => { API=api; if(wantUri) build(wantUri); };
+function build(uri){
+  const my=++gen;
+  if(sp){ try{sp.pause()}catch(e){} try{sp.destroy()}catch(e){} sp=null; }
+  const host=document.getElementById("spWrap");
+  host.innerHTML='<div id="sp"></div>';
+  playing=false; paintPlayer();
+  API.createController(document.getElementById("sp"), {width:"100%", height:80, uri}, c => {
+    if(my!==gen){ try{c.destroy()}catch(e){} return; }
+    sp=c;
+    c.addListener("ready",()=>{ if(my===gen && pendingPlay){pendingPlay=false;clearTimeout(playTimer);c.play();} });
     c.addListener("playback_update",e=>{
-      const d=e.data;
-      /* Spelar fel låt? Ladda om den vi vill ha */
-      if(d.playingURI && wantUri && wantUri.startsWith("spotify:track:") && d.playingURI!==wantUri){ if(!d.isPaused) sp.pause(); return; }
-      playing=!d.isPaused && !d.isBuffering;
+      if(my!==gen) return;
+      const d=e.data; playing=!d.isPaused && !d.isBuffering;
       if(playing && d.position>0){clearTimeout(startTimer);hideFallback();}
       paintPlayer();
     });
-    if(wantUri && wantUri!==loadedUri) switchTo(wantUri);
+    if(pendingPlay){ clearTimeout(playTimer); playTimer=setTimeout(()=>{ if(my===gen && pendingPlay){pendingPlay=false;c.play();} },1500); }
   });
-};
-function switchTo(uri){
-  if(!sp) return;
-  try{ sp.pause(); }catch(e){}
-  loadedUri=uri;
-  sp.loadUri(uri);
 }
 function loadSong(it,autoplay){
-  wantUri="spotify:"+it.u; playing=false; paintPlayer();
-  pendingPlay=autoplay;
-  if(!sp) return;
-  if(loadedUri!==wantUri) switchTo(wantUri);
-  else if(autoplay){ pendingPlay=false; sp.seek(0); sp.play(); }
-  if(autoplay){
-    /* om "ready" inte kommer, försök ändå */
-    clearTimeout(playTimer);
-    playTimer=setTimeout(()=>{ if(pendingPlay){pendingPlay=false;sp.play();} },2000);
-    armFallback();
-  }
+  wantUri="spotify:"+it.u; pendingPlay=autoplay;
+  if(API) build(wantUri);
+  if(autoplay) armFallback();
 }
 function togglePlay(){
-  if(!sp){setState("Spotify laddar…");return}
+  if(!sp){ pendingPlay=true; setState("Spotify laddar…"); armFallback(); return; }
   if(playing){sp.pause();playing=false;paintPlayer();return}
-  if(loadedUri!==wantUri){ pendingPlay=true; switchTo(wantUri); }
-  else sp.play();
-  armFallback();
+  sp.play(); armFallback();
 }
+function stopMusic(){ if(sp){ try{sp.pause()}catch(e){} } }
 function armFallback(){clearTimeout(startTimer);startTimer=setTimeout(()=>{if(!playing)showFallback()},4500)}
 function showFallback(){$("spWrap").classList.add("fallback")}
 function hideFallback(){$("spWrap").classList.remove("fallback")}
@@ -202,7 +193,7 @@ function stats(){
 }
 function home(){
   deck=[];stats();$("barWrap").hidden=true;$("foot").hidden=false;
-  if(sp&&playing)sp.pause();
+  stopMusic();
   view.innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">
     <div class="screen">
       <span class="label">Nu spelas</span>
@@ -256,7 +247,7 @@ function answer(pick){
   $("next").onclick=i<deck.length?()=>round(true):end;
 }
 function end(){
-  if(sp&&playing)sp.pause();
+  stopMusic();
   const max=deck.length,pct=score/(max*20);
   const isBest=score>best;if(isBest){best=score;try{localStorage.setItem("rl_best",best)}catch(e){}}
   const msg=pct>.7?"Du är en vandrande reklampaus.":pct>.4?"Bra öra för reklam!":"Dags att titta mer på tv.";
