@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#d9412a">
+<title>Reklamlåten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#e7ecf0; --card:#ffffff; --fg:#14202a; --muted:#5a6b78; --line:#cdd6dd;
+  --accent:#d9412a; --accent-ink:#ffffff; --ok:#1f8a4c; --bad:#c2332b; --okbg:#e2f3e8; --badbg:#fbe5e2;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f171d; --card:#18232c; --fg:#e8eef2; --muted:#93a4b1; --line:#2a3945;
+  --accent:#ff6a4d; --accent-ink:#1a0d0a; --ok:#4cc982; --bad:#ff7a6e; --okbg:#173327; --badbg:#3a1f1d; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--display);font-size:16px;line-height:1.45;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+[hidden]{display:none!important}
+main{max-width:520px;margin:0 auto;padding-block:20px 32px;display:flex;flex-direction:column;gap:18px;min-height:100%}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-weight:800;font-size:1.35rem;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.onair{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);padding:3px 7px;border-radius:4px}
+.stats{font-family:var(--mono);font-size:.8rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.stats b{color:var(--fg);font-weight:500}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.screen{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px 20px 20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,color-mix(in srgb,var(--fg) 4%,transparent) 3px 4px)}
+.label{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.song{font-weight:800;font-size:clamp(1.7rem,7vw,2.3rem);line-height:1.05;letter-spacing:-.025em;text-wrap:balance;margin:0}
+.artist{font-size:1.05rem;color:var(--muted);margin:0}
+.hiddenname{color:var(--muted)}
+.player{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.play{width:64px;height:64px;flex:none;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;display:grid;place-items:center}
+.play svg{width:26px;height:26px;fill:currentColor}
+.play:focus-visible{outline:3px solid var(--fg);outline-offset:3px}
+.eq{display:flex;align-items:flex-end;gap:3px;height:28px}
+.eq i{width:5px;background:var(--accent);border-radius:2px;height:30%}
+.playing .eq i{animation:eq .9s ease-in-out infinite alternate}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.6s}.eq i:nth-child(4){animation-delay:-.15s}.eq i:nth-child(5){animation-delay:-.45s}
+@keyframes eq{from{height:20%}to{height:100%}}
+.pstate{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.listen{align-self:flex-start;font-family:var(--mono);font-size:.78rem;color:var(--accent);text-decoration:none;border-bottom:1px solid currentColor;position:relative;z-index:1}
+.q{font-weight:500;margin:0}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{font:inherit;font-size:1.05rem;font-weight:500;text-align:left;color:var(--fg);background:var(--card);border:2px solid var(--line);border-radius:14px;
+  padding:16px;min-height:58px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,transform .1s}
+.opt .k{font-family:var(--mono);font-size:.8rem;width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:50%;border:1.5px solid var(--line);color:var(--muted)}
+.opt:active{transform:scale(.98)}
+.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.opt.ok{border-color:var(--ok);background:var(--okbg)} .opt.ok .k{border-color:var(--ok);color:var(--ok)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)} .opt.bad .k{border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default} .opt.dim{opacity:.55}
+.fact{border-left:3px solid var(--accent);padding:4px 0 4px 12px;margin:0}
+.fact strong{display:block;font-size:1.1rem}
+.btn{font:inherit;font-weight:800;font-size:1.1rem;background:var(--accent);color:var(--accent-ink);border:0;border-radius:14px;padding:16px;cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--fg);border:2px solid var(--line);font-weight:500}
+.btn:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+.row{display:flex;gap:10px} .row>*{flex:1}
+.big{font-weight:800;font-size:clamp(3rem,16vw,4.5rem);line-height:1;letter-spacing:-.04em;margin:0;font-variant-numeric:tabular-nums}
+.sub{color:var(--muted);margin:0}
+.lead{font-size:1.05rem;margin:0}
+.toggle{display:flex;gap:8px}
+.toggle button{flex:1;font:inherit;font-family:var(--mono);font-size:.85rem;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.toggle button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.foot{font-family:var(--mono);font-size:.72rem;color:var(--muted);text-align:center;margin-top:auto}
+/* Spotify-spelaren: gömd utanför skärmen, eller synlig med skymd titel som reserv */
+#spWrap{position:fixed;left:-9999px;top:0;width:300px;height:80px;overflow:hidden}
+#spWrap.fallback{left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:auto;max-width:488px;margin:0 auto;border-radius:12px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#spWrap.fallback::after{content:"Tryck på ▶ till höger";position:absolute;inset:0 76px 0 0;display:flex;align-items:center;padding-left:16px;
+  font-family:var(--mono);font-size:.8rem;color:var(--fg);background:var(--card);border:1px solid var(--line);border-right:0;border-radius:12px 0 0 12px;pointer-events:auto}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div class="logo">Reklamlåten <span class="onair">i rutan</span></div>
+    <div class="stats" id="stats"></div>
+  </div>
+  <div class="bar" id="barWrap" hidden><i id="bar"></i></div>
+  <div id="view"></div>
+  <div id="spWrap"><div id="sp"></div></div>
+  <p class="foot" id="foot">30 låtar · musik via Spotify</p>
+</main>
+
+<script>
+const LIB = [
+ {s:"Bohemian Like You",a:"The Dandy Warhols",b:"Vodafone",y:2001,u:"track:3APHT3KjbHi9OllkVQsuXF",f:"Mobilreklamen gjorde låten till en hit i Storbritannien flera år efter skivsläppet."},
+ {s:"I Heard It Through the Grapevine",a:"Marvin Gaye",b:"Levi's 501",y:1985,u:"track:55tZMaQwACXzX4mMiiEuJa",f:"”Launderette” – Nick Kamen tvättar jeansen i boxershorts på en tvättomat."},
+ {s:"Flat Beat",a:"Mr. Oizo",b:"Levi's Sta-Prest",y:1999,u:"track:3JPcICirkAw4TLp9UzEcfl",f:"Den gula dockan Flat Eric nickade till basgången, och låten gick till topps i Storbritannien."},
+ {s:"In the Air Tonight",a:"Phil Collins",b:"Cadbury Dairy Milk",y:2007,u:"track:0lLTc1wmgU3dE2xDZCkWVU",f:"”Gorilla” – en gorilla som spelar trumsolot."},
+ {s:"Heartbeats",a:"José González",b:"Sony Bravia",y:2005,u:"track:6Z0rymu2z30a3fUPUZwykr",f:"Hundratusentals studsbollar släpptes nerför en backe i San Francisco. Låten är en cover på The Knife."},
+ {s:"1234",a:"Feist",b:"Apple iPod nano",y:2007,u:"track:2CzWeyC9zlDpIOZPUUKrBW",f:"Reklamen lyfte låten högt upp på Billboardlistan."},
+ {s:"New Soul",a:"Yael Naïm",b:"Apple MacBook Air",y:2008,u:"track:476JcJ3TpAuCOlGdCmomGm",f:"Datorn drogs ur ett vanligt kuvert i reklamen."},
+ {s:"Start Me Up",a:"The Rolling Stones",b:"Microsoft Windows 95",y:1995,u:"track:7HKez549fwJQDzx3zLjHKC",f:"Startknappen fick sin egen låt när Windows 95 lanserades."},
+ {s:"Revolution",a:"The Beatles",b:"Nike",y:1987,u:"track:3UDmHZcBTQp8Iu8droNtUl",f:"Första gången en originalinspelning av Beatles användes i en tv-reklam."},
+ {s:"Du gamla, du fria",a:"Nationalsången",b:"Volvo XC70",y:2014,u:"track:4hrTD01XIZeh2EcfieDPot",f:"”Made by Sweden” – Zlatan reciterar nationalsången över svenska landskap."},
+ {s:"Only Time",a:"Enya",b:"Volvo Trucks",y:2013,u:"track:6FLwmdmW77N1Pxb1aWsZmO",f:"”The Epic Split” – Jean-Claude Van Damme gör spagat mellan två backande lastbilar."},
+ {s:"Lose Yourself",a:"Eminem",b:"Chrysler 200",y:2011,u:"track:1a3xfVZyJnlKn4t65ccBbp",f:"”Imported from Detroit”, visad under Super Bowl med Eminem själv i bild."},
+ {s:"Phat Planet",a:"Leftfield",b:"Guinness (Surfer)",y:1999,u:"track:3cR4v4R9tl8vZkOAgqiMQh",f:"Surfare och vita hästar i vågorna, ofta utsedd till en av tidernas bästa reklamfilmer."},
+ {s:"I'd Like to Teach the World to Sing",a:"The New Seekers",b:"Coca-Cola",y:1971,u:"track:0hbC2CAJidLslKqJ39Lxh4",f:"”Hilltop” – ungdomar sjunger på en kulle. Melodin skrevs för reklamen."},
+ {s:"The Imperial March",a:"John Williams",b:"Volkswagen Passat",y:2011,u:"track:62HY7V5hRKtfIZ7uCYqYqu",f:"”The Force” – en liten Darth Vader försöker använda Kraften på bilen."},
+ {s:"Somewhere Only We Know",a:"Lily Allen",b:"John Lewis",y:2013,u:"track:1mvfvDZOybiEgS1ecJxt9W",f:"Julreklamen ”The Bear & the Hare”. Covern på Keane-låten toppade UK-listan."},
+ {s:"Jump, Jive an' Wail",a:"Louis Prima",b:"Gap",y:1998,u:"track:1avf1M4btPbNGiIUXeNSvt",f:"”Khakis Swing” – swingdansare i khakibyxor, med frusna bildrutor."},
+ {s:"Largo ur ”Från Nya världen”",a:"Antonín Dvořák",b:"Hovis",y:1973,u:"track:1ZiCry2qiR9BBbfl088KfT",f:"”Boy on the Bike”, regisserad av Ridley Scott, spelad av ett brassband."},
+ {s:"Blomsterduetten ur Lakmé",a:"Léo Delibes",b:"British Airways",y:1989,u:"track:78sWY3NRkchrqZtIoDyNUC",f:"Flygbolaget använde melodin som sitt kännetecken i många år."},
+ {s:"Singin' in the Rain (remix)",a:"Mint Royale",b:"Volkswagen Golf GTI",y:2005,u:"track:0lju7TCZwpvslleR7OgY9h",f:"Gene Kelly breakdansar tack vare digital bildmanipulering."},
+ {s:"Like a Rock",a:"Bob Seger",b:"Chevrolet",y:1991,u:"track:0hdNWYGrRV0d4npXlFSN92",f:"Användes i Chevrolets pickupreklam i över tio år."},
+ {s:"Mad World",a:"Gary Jules",b:"Gears of War",y:2006,u:"track:1dYgWIKrLTkJb91SSabX9j",f:"Den dystra trailern blev en av de mest omtalade spelreklamerna."},
+ {s:"Lust for Life",a:"Iggy Pop",b:"Royal Caribbean",y:1999,u:"track:6Siyo5djabydMcWKvOhPw0",f:"En låt om droger blev kryssningsrederiets semesterhymn."},
+ {s:"Pink Moon",a:"Nick Drake",b:"Volkswagen Cabrio",y:1999,u:"track:16qzGrIMWoxerw2gnW0zuv",f:"”Milky Way” gav Nick Drake nya lyssnare 25 år efter hans död."},
+ {s:"Days Go By",a:"Dirty Vegas",b:"Mitsubishi Eclipse",y:2002,u:"album:57a5HPlR89noaUFkys9LSC",f:"En passagerare som dansar i bilen gjorde låten till en hit i USA."},
+ {s:"I Just Want to Make Love to You",a:"Etta James",b:"Diet Coke",y:1996,u:"track:3QnHWkNMY2mpy494Bis0ly",f:"”Diet Coke Break” – kontorsanställda tittar på en byggarbetare."},
+ {s:"Air (på G-strängen)",a:"J.S. Bach",b:"Hamlet-cigarrer",y:1966,u:"track:0cqw9j2a6Gcttq5y4NVKwf",f:"Melodin följde cigarrmärkets reklamer i decennier."},
+ {s:"Viva la Vida",a:"Coldplay",b:"Apple iTunes",y:2008,u:"track:3Fcfwhm8oRrBvBZ8KGhtea",f:"Bandet syntes själva i Apples reklam när albumet släpptes."},
+ {s:"Rhythm of Life",a:"Sammy Davis Jr.",b:"Guinness (noitulovE)",y:2005,u:"track:6bzQsXP6h32qMTTfm2t9lD",f:"Tre män i en bar spolas baklänges genom evolutionen."},
+ {s:"The Impossible Dream",a:"Andy Williams",b:"Honda",y:2005,u:"track:5Z0fxoqx4Zw9RjDhRHYzDC",f:"En man reser genom Hondas historia med motorcykel, bil, båt och luftballong."}
+];
+
+/* ---------- Spotify ---------- */
+let sp=null, spReady=false, playing=false, wantUri=null, startTimer=null;
+window.onSpotifyIframeApiReady = API => {
+  API.createController(document.getElementById("sp"), {width:"100%", height:80, uri:"spotify:"+LIB[0].u}, c => {
+    sp=c;
+    c.addListener("ready",()=>{spReady=true;});
+    c.addListener("playback_update",e=>{
+      const d=e.data; playing=!d.isPaused && !d.isBuffering;
+      if(playing && d.position>0){clearTimeout(startTimer);hideFallback();}
+      paintPlayer();
+    });
+  });
+};
+function loadSong(it,autoplay){
+  wantUri="spotify:"+it.u; playing=false; paintPlayer();
+  if(!sp) return;
+  sp.loadUri(wantUri);
+  if(autoplay){ setTimeout(()=>sp.play(),400); armFallback(); }
+}
+function togglePlay(){
+  if(!sp){setState("Spotify laddar…");return}
+  if(playing){sp.pause();playing=false;paintPlayer();return}
+  sp.play(); armFallback();
+}
+function armFallback(){clearTimeout(startTimer);startTimer=setTimeout(()=>{if(!playing)showFallback()},3000)}
+function showFallback(){$("spWrap").classList.add("fallback")}
+function hideFallback(){$("spWrap").classList.remove("fallback")}
+function setState(t){const el=document.getElementById("pstate");if(el)el.textContent=t}
+function paintPlayer(){
+  const p=document.getElementById("player"); if(!p) return;
+  p.classList.toggle("playing",playing);
+  document.getElementById("playIcon").innerHTML = playing ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+  document.getElementById("playBtn").setAttribute("aria-label",playing?"Pausa":"Spela låten");
+  setState(playing?"Spelar…":"Tryck för att spela");
+}
+
+/* ---------- Spelet ---------- */
+const brandKey=b=>b.split(/[ (]/)[0].replace("'s","");
+const $=id=>document.getElementById(id);
+const view=$("view");
+let best=0; try{best=+localStorage.getItem("rl_best")||0}catch(e){}
+let len=10, deck=[], i=0, score=0, streak=0;
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.random()*(k+1)|0;[a[k],a[j]]=[a[j],a[k]]}return a}
+function options(item){
+  const others=shuffle(LIB.filter(x=>brandKey(x.b)!==brandKey(item.b)));
+  const picks=[];for(const o of others){if(picks.every(p=>brandKey(p)!==brandKey(o.b)))picks.push(o.b);if(picks.length===2)break}
+  return shuffle([item.b,...picks]);
+}
+function esc(t){return t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function stats(){
+  $("stats").innerHTML=deck.length?`Poäng <b>${score}</b> · Svit <b>${streak}</b>`:`Rekord <b>${best}</b>`;
+  $("bar").style.width=deck.length?(i/deck.length*100)+"%":"0";
+}
+function home(){
+  deck=[];stats();$("barWrap").hidden=true;$("foot").hidden=false;
+  if(sp&&playing)sp.pause();
+  view.innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">
+    <div class="screen">
+      <span class="label">Nu spelas</span>
+      <p class="song">Vilken reklam hör låten till?</p>
+      <p class="artist">Lyssna på låten och välj rätt reklamfilm bland tre alternativ. Titeln visas först när du svarat.</p>
+    </div>
+    <div><p class="label" style="margin:0 0 8px">Antal låtar</p>
+      <div class="toggle" role="group" aria-label="Antal låtar">
+        ${[10,20,30].map(n=>`<button type="button" id="len${n}" aria-pressed="${n===len}">${n} låtar</button>`).join("")}
+      </div></div>
+    <button class="btn" id="start">Starta</button>
+    <p class="sub" style="font-size:.9rem">Logga in på Spotify i webbläsaren för hela låtar, annars spelas 30 sekunder.</p>
+  </div>`;
+  [10,20,30].forEach(n=>$("len"+n).onclick=()=>{len=n;home()});
+  $("start").onclick=start;
+}
+function start(){deck=shuffle(LIB).slice(0,len);i=0;score=0;streak=0;$("barWrap").hidden=false;$("foot").hidden=true;round(true)}
+function round(autoplay){
+  stats();
+  const it=deck[i], opts=options(it);
+  view.innerHTML=`<div style="display:flex;flex-direction:column;gap:16px">
+    <div class="screen">
+      <span class="label">Låt ${i+1} av ${deck.length}</span>
+      <p class="song hiddenname" id="title">? ? ?</p>
+      <p class="artist" id="artist">Lyssna och gissa</p>
+      <div class="player" id="player">
+        <button class="play" id="playBtn" aria-label="Spela låten"><svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg></button>
+        <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="pstate" id="pstate">Tryck för att spela</span>
+      </div>
+    </div>
+    <p class="q">Vilken reklam använde låten?</p>
+    <div class="opts">${opts.map((o,k)=>`<button class="opt" id="o${k}" data-b="${esc(o)}"><span class="k">${"ABC"[k]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div id="after"></div>
+  </div>`;
+  $("playBtn").onclick=togglePlay;
+  opts.forEach((o,k)=>$("o"+k).onclick=()=>answer(o));
+  hideFallback();
+  loadSong(it,autoplay);
+}
+function answer(pick){
+  const it=deck[i], right=pick===it.b;
+  if(right){streak++;score+=10+Math.min(streak-1,5)*2}else streak=0;
+  document.querySelectorAll(".opt").forEach(b=>{b.disabled=true;
+    if(b.dataset.b===it.b)b.classList.add("ok");else if(b.dataset.b===pick)b.classList.add("bad");else b.classList.add("dim")});
+  $("title").textContent=it.s;$("title").classList.remove("hiddenname");$("artist").textContent=it.a;
+  i++;stats();
+  $("after").innerHTML=`<div style="display:flex;flex-direction:column;gap:14px">
+    <p class="fact"><strong>${right?"Rätt!":"Fel – det var "+esc(it.b)}</strong>${esc(it.f)} (${it.y})</p>
+    <button class="btn" id="next">${i<deck.length?"Nästa låt":"Se resultat"}</button></div>`;
+  $("next").onclick=i<deck.length?()=>round(true):end;
+}
+function end(){
+  if(sp&&playing)sp.pause();
+  const max=deck.length,pct=score/(max*20);
+  const isBest=score>best;if(isBest){best=score;try{localStorage.setItem("rl_best",best)}catch(e){}}
+  const msg=pct>.7?"Du är en vandrande reklampaus.":pct>.4?"Bra öra för reklam!":"Dags att titta mer på tv.";
+  $("barWrap").hidden=true;hideFallback();
+  view.innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">
+    <div class="screen">
+      <span class="label">Slut på reklampausen</span>
+      <p class="big">${score}</p>
+      <p class="sub">poäng på ${max} låtar${isBest?" · nytt rekord!":""}</p>
+      <p class="lead">${msg}</p>
+    </div>
+    <div class="row"><button class="btn" id="again">Spela igen</button><button class="btn ghost" id="menu">Meny</button></div>
+  </div>`;
+  deck=[];stats();
+  $("again").onclick=start;$("menu").onclick=home;
+}
+home();
+</script>
+<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+</body>
+</html>
