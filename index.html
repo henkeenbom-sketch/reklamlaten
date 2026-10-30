@@ -205,6 +205,31 @@ function options(item){
   }
   return shuffle([item.b,...picks]);
 }
+function esc(t){return t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function stats(){
+  $("stats").innerHTML=deck.length?`Poäng <b>${score}</b> · Svit <b>${streak}</b>`:`Rekord <b>${best}</b>`;
+  $("bar").style.width=deck.length?(i/deck.length*100)+"%":"0";
+}
+function home(){
+  stopCountdown();
+  deck=[];stats();$("barWrap").hidden=true;$("foot").hidden=false;
+  stopMusic();
+  view.innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">
+    <div class="screen">
+      <span class="label">Nu spelas</span>
+      <p class="song">Vilken reklam hör låten till?</p>
+      <p class="artist">Lyssna på låten och välj vilken svensk reklamfilm den hördes i. Titeln visas först när du svarat.</p>
+    </div>
+    <div><p class="label" style="margin:0 0 8px">Antal låtar</p>
+      <div class="toggle" role="group" aria-label="Antal låtar">
+        ${[10,20,30].map(n=>`<button type="button" id="len${n}" aria-pressed="${n===len}">${n} låtar</button>`).join("")}
+      </div></div>
+    <button class="btn" id="start">Starta</button>
+    <p class="sub" style="font-size:.9rem">Logga in på Spotify i webbläsaren för hela låtar, annars spelas 30 sekunder.</p>
+  </div>`;
+  [10,20,30].forEach(n=>$("len"+n).onclick=()=>{len=n;home()});
+  $("start").onclick=start;
+}
 function start(){refillPool();deck=shuffle(LIB).slice(0,len);i=0;score=0;streak=0;$("barWrap").hidden=false;$("foot").hidden=true;round(true)}
 function round(autoplay){
   stats();
