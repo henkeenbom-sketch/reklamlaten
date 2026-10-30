@@ -128,30 +128,50 @@ const LIB = [
 ];
 
 /* ---------- Spotify ---------- */
-let sp=null, spReady=false, playing=false, wantUri=null, startTimer=null;
+let sp=null, playing=false, wantUri=null, loadedUri=null, pendingPlay=false, startTimer=null, playTimer=null;
 window.onSpotifyIframeApiReady = API => {
-  API.createController(document.getElementById("sp"), {width:"100%", height:80, uri:"spotify:"+LIB[0].u}, c => {
-    sp=c;
-    c.addListener("ready",()=>{spReady=true;});
+  API.createController(document.getElementById("sp"), {width:"100%", height:80, uri:wantUri||"spotify:"+LIB[0].u}, c => {
+    sp=c; loadedUri=wantUri||"spotify:"+LIB[0].u;
+    /* "ready" kommer när en låt har laddats färdigt, även efter loadUri */
+    c.addListener("ready",()=>{ if(pendingPlay){pendingPlay=false;clearTimeout(playTimer);sp.play();} });
     c.addListener("playback_update",e=>{
-      const d=e.data; playing=!d.isPaused && !d.isBuffering;
+      const d=e.data;
+      /* Spelar fel låt? Ladda om den vi vill ha */
+      if(d.playingURI && wantUri && wantUri.startsWith("spotify:track:") && d.playingURI!==wantUri){ if(!d.isPaused) sp.pause(); return; }
+      playing=!d.isPaused && !d.isBuffering;
       if(playing && d.position>0){clearTimeout(startTimer);hideFallback();}
       paintPlayer();
     });
+    if(wantUri && wantUri!==loadedUri) switchTo(wantUri);
   });
 };
+function switchTo(uri){
+  if(!sp) return;
+  try{ sp.pause(); }catch(e){}
+  loadedUri=uri;
+  sp.loadUri(uri);
+}
 function loadSong(it,autoplay){
   wantUri="spotify:"+it.u; playing=false; paintPlayer();
+  pendingPlay=autoplay;
   if(!sp) return;
-  sp.loadUri(wantUri);
-  if(autoplay){ setTimeout(()=>sp.play(),400); armFallback(); }
+  if(loadedUri!==wantUri) switchTo(wantUri);
+  else if(autoplay){ pendingPlay=false; sp.seek(0); sp.play(); }
+  if(autoplay){
+    /* om "ready" inte kommer, försök ändå */
+    clearTimeout(playTimer);
+    playTimer=setTimeout(()=>{ if(pendingPlay){pendingPlay=false;sp.play();} },2000);
+    armFallback();
+  }
 }
 function togglePlay(){
   if(!sp){setState("Spotify laddar…");return}
   if(playing){sp.pause();playing=false;paintPlayer();return}
-  sp.play(); armFallback();
+  if(loadedUri!==wantUri){ pendingPlay=true; switchTo(wantUri); }
+  else sp.play();
+  armFallback();
 }
-function armFallback(){clearTimeout(startTimer);startTimer=setTimeout(()=>{if(!playing)showFallback()},3000)}
+function armFallback(){clearTimeout(startTimer);startTimer=setTimeout(()=>{if(!playing)showFallback()},4500)}
 function showFallback(){$("spWrap").classList.add("fallback")}
 function hideFallback(){$("spWrap").classList.remove("fallback")}
 function setState(t){const el=document.getElementById("pstate");if(el)el.textContent=t}
